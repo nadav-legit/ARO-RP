@@ -1439,7 +1439,7 @@ func TestCheckBYONsg(t *testing.T) {
 	for _, tt := range []struct {
 		name       string
 		subnetByID map[string]*mgmtnetwork.Subnet
-		byoNSG     bool
+		byoNSG     api.PreconfiguredNSG
 		wantErr    string
 	}{
 		{
@@ -1448,7 +1448,7 @@ func TestCheckBYONsg(t *testing.T) {
 				"A": subnetWithNSG,
 				"B": subnetWithNSG,
 			},
-			byoNSG: true,
+			byoNSG: api.PreconfiguredNSGEnabled,
 		},
 		{
 			name: "pass: no subnets are attached (no longer BYONSG)",
@@ -1456,7 +1456,7 @@ func TestCheckBYONsg(t *testing.T) {
 				"A": subnetWithoutNSG,
 				"B": subnetWithoutNSG,
 			},
-			byoNSG: false,
+			byoNSG: api.PreconfiguredNSGDisabled,
 		},
 		{
 			name: "fail: parts of the subnets are attached",
@@ -1465,7 +1465,7 @@ func TestCheckBYONsg(t *testing.T) {
 				"B": subnetWithoutNSG,
 				"C": subnetWithNSG,
 			},
-			byoNSG:  false,
+			byoNSG:  api.PreconfiguredNSGDisabled,
 			wantErr: "400: InvalidLinkedVNet: : When the enable-preconfigured-nsg option is specified, both the master and worker subnets should have network security groups (NSG) attached to them before starting the cluster installation.",
 		},
 	} {
@@ -1476,7 +1476,7 @@ func TestCheckBYONsg(t *testing.T) {
 			byoNSG, err := dv.checkByoNSG(tt.subnetByID)
 			utilerror.AssertErrorMessage(t, err, tt.wantErr)
 			if byoNSG != tt.byoNSG {
-				t.Errorf("byoNSG got %t, want %t", byoNSG, tt.byoNSG)
+				t.Errorf("byoNSG got %s, want %s", byoNSG, tt.byoNSG)
 			}
 		})
 	}

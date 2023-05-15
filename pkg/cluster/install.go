@@ -47,7 +47,6 @@ func (m *manager) adminUpdate() []steps.Step {
 		steps.Action(m.initializeKubernetesClients), // must be first
 		steps.Action(m.ensureBillingRecord),         // belt and braces
 		steps.Action(m.ensureDefaults),
-		steps.Action(m.ensureBYONsg),
 		steps.Action(m.fixupClusterSPObjectID),
 		steps.Action(m.fixInfraID), // Old clusters lacks infraID in the database. Which makes code prone to errors.
 	}
@@ -378,10 +377,9 @@ func (m *manager) startInstallation(ctx context.Context) error {
 			}
 
 			// TODO remove this when introducing the BYONSG CLI option
-			byoNSG := feature.IsRegisteredForFeature(m.subscriptionDoc.Subscription.Properties, api.FeatureFlagBYONsg)
-			if byoNSG {
+			if feature.IsRegisteredForFeature(m.subscriptionDoc.Subscription.Properties, api.FeatureFlagBYONsg) {
 				m.log.Logger.Info("BYO NSG feature flag is on")
-				doc.OpenShiftCluster.Properties.NetworkProfile.PreconfiguredNSG = true
+				doc.OpenShiftCluster.Properties.NetworkProfile.PreconfiguredNSG = api.PreconfiguredNSGEnabled
 			}
 		}
 		return nil
